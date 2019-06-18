@@ -145,15 +145,21 @@ unsigned long symbol_resolve(const char* dso, const char* sym) {
   return sym_addr;
 }
 
+static getpid_pfn resolved_local_getpid = (getpid_pfn)-1;
+static pthread_once_t resolve_getpid_once = PTHREAD_ONCE_INIT;
+static void resolve_local_getpid(void) {
+  resolved_local_getpid = (getpid_pfn)symbol_resolve("libdlns.so", "local_getpid");
+}
 static int local_getpid_real(void) {
-  getpid_pfn local_getpid = (getpid_pfn)symbol_resolve("libdlns.so", "local_getpid");
-  assert(local_getpid != (getpid_pfn)-1);
-  return local_getpid();
+  pthread_once(&resolve_getpid_once, resolve_local_getpid);
+  if (resolved_local_getpid != (getpid_pfn)-1) {
+    return resolved_local_getpid();
+  }
+  return 0;
 }
 
 #else
 extern int local_getpid(void);
-
 static int local_getpid_real(void) {
   return local_getpid();
 }
