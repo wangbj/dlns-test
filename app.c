@@ -160,7 +160,8 @@ void* threadfn(void* param) {
   fprintf(stderr, "#%lu local_getpid addr = %p\n", tp->thread_id, tp->getpid);
 
   if (tp->getpid != (getpid_pfn)-1UL) {
-    printf("local_getpid: %u\n", tp->getpid());
+    printf("#%lu local_getpid: %u\n", tp->thread_id, tp->getpid());
+    printf("#%lu local_getpid: %u\n", tp->thread_id, tp->getpid());
   }
 
   printf("#%lu my own tls: %lx\n", tp->thread_id, *(unsigned long*)pthread_getspecific(pkey));
