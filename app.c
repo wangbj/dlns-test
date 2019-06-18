@@ -16,6 +16,7 @@ struct thread_params {
   getpid_pfn getpid;
 };
 
+#ifdef WITH_DLNS
 static int ended_with(const char* s, const char* pattern) {
   int n = strlen(pattern);
   int m = strlen(s);
@@ -144,6 +145,20 @@ unsigned long symbol_resolve(const char* dso, const char* sym) {
   return sym_addr;
 }
 
+static int local_getpid_real(void) {
+  getpid_pfn local_getpid = (getpid_pfn)symbol_resolve("libdlns.so", "local_getpid");
+  assert(local_getpid != (getpid_pfn)-1);
+  return local_getpid();
+}
+
+#else
+extern int local_getpid(void);
+
+static int local_getpid_real(void) {
+  return local_getpid();
+}
+#endif
+
 void* threadfn(void* param) {
 
   struct thread_params* tp = (struct thread_params*)param;
@@ -172,12 +187,12 @@ void* threadfn(void* param) {
 int main(int argc, char* argv[]) {
   pthread_t threads[4];
 
-  getpid_pfn local_getpid = (getpid_pfn)symbol_resolve("libdlns.so", "local_getpid");
+  getpid_pfn getpid = (getpid_pfn)local_getpid_real;
   struct thread_params params[] = {
-    {0, local_getpid},
-    {1, local_getpid},
-    {2, local_getpid},
-    {3, local_getpid},
+    {0, getpid},
+    {1, getpid},
+    {2, getpid},
+    {3, getpid},
   };
   
   for (int i = 0; i < 4; i++) {

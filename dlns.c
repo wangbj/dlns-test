@@ -17,9 +17,10 @@ static int gettid(void) {
   return syscall(SYS_gettid);
 }
 
-static void doing_nothing(void* p)
+static void pkey_destroy(void* p)
 {
-  fprintf(stderr, "%u called tls destroy\n", gettid());
+  fprintf(stderr, "%u called %s\n", gettid(), __func__);
+  free(p);
 }
 
 int local_getpid(void) {
@@ -39,7 +40,7 @@ int local_getpid(void) {
 __attribute__((constructor)) int dlns_init(void) {
   fprintf(stderr, "dlns_init\n");
 
-  assert(pthread_key_create(&local_pkey, doing_nothing) == 0);  
+  assert(pthread_key_create(&local_pkey, pkey_destroy) == 0);  
 
   return 0;
 }

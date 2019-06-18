@@ -2,7 +2,7 @@ CC	 = gcc
 
 CFLAGS	 = -g -O2 -Wall -fPIC -D_GNU_SOURCE=1
 
-all: libpreload.so libdlns.so run app
+all: libpreload.so libdlns.so run app app-standalone
 
 libpreload.so: preload.c
 	$(CC) -o $@ $< $(CFLAGS) -shared -ldl -Wl,-soname=preload
@@ -14,6 +14,9 @@ run: run.c
 	$(CC) -o $@ $^ $(CFLAGS) 
 
 app: app.c
+	$(CC) -o $@ $^ $(CFLAGS) -DWITH_DLNS -pthread
+
+app-standalone: app.c dlns.c
 	$(CC) -o $@ $^ $(CFLAGS) -pthread
 
 .PHONY: all clean test
