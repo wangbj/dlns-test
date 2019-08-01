@@ -1,6 +1,7 @@
 CC	 = clang
 
-CFLAGS	 = -g -O1 -Wall -fPIC -D_GNU_SOURCE=1 -fstack-protector-strong
+CFLAGS	 = -g -O1 -Wall -fPIC -D_GNU_SOURCE=1
+CFLAGS_ASAN = -g -O1 -Wall -fPIC -D_GNU_SOURCE=1 -fstack-protector-strong -fsanitize=address -fno-omit-frame-pointer
 
 all: libpreload.so libdlns.so run app app-standalone
 
