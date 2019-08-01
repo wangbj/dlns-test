@@ -11,36 +11,33 @@
 #include <elf.h>
 #include <assert.h>
 
-static pthread_key_t local_pkey = -1;
+pthread_key_t local_pkey;
 
-static int gettid(void) {
-  return syscall(SYS_gettid);
-}
-
-static void pkey_destroy(void* p)
-{
-  fprintf(stderr, "%u called %s\n", gettid(), __func__);
+static __attribute__((noinline)) void pkey_destroy(void* p) {
+  fprintf(stderr, "called %s\n", __func__);
   free(p);
 }
 
-int local_getpid(void) {
+int pause(void) {
+  fprintf(stderr, "called pause from dlns\n");
 
-  if (pthread_getspecific(local_pkey) == NULL) {
-    unsigned long* data = malloc(sizeof(unsigned long));
-    assert(data);
-    pthread_setspecific(local_pkey, data);
-    *data = gettid();
-  }
+  unsigned long* p = calloc(2, sizeof(long));
 
-  unsigned long* cached = pthread_getspecific(local_pkey);
-  assert(cached);
-  return *cached;
+  printf("calloc symbol resolved to %p\n", calloc);
+  printf("call calloc returned %p\n", p);
+
+  p[0] = 0x1234;
+  p[1] = 0x5678;
+
+  printf("free resolved to %p\n", free);
+
+  pthread_key_create(&local_pkey, pkey_destroy);
+  pthread_setspecific(local_pkey, p);
+
+  return syscall(SYS_pause);
 }
 
 __attribute__((constructor)) int dlns_init(void) {
   fprintf(stderr, "dlns_init\n");
-
-  assert(pthread_key_create(&local_pkey, pkey_destroy) == 0);  
-
   return 0;
 }

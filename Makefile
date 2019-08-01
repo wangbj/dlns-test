@@ -1,6 +1,6 @@
-CC	 = gcc
+CC	 = clang
 
-CFLAGS	 = -g -O2 -Wall -fPIC -D_GNU_SOURCE=1
+CFLAGS	 = -g -O1 -Wall -fPIC -D_GNU_SOURCE=1 -fstack-protector-strong
 
 all: libpreload.so libdlns.so run app app-standalone
 
@@ -11,7 +11,7 @@ libdlns.so: dlns.c
 	$(CC) -o $@ $< $(CFLAGS) -shared -ldl -lpthread -Wl,-soname=dlns,-as-needed
 
 run: run.c
-	$(CC) -o $@ $^ $(CFLAGS) 
+	$(CC) -o $@ $^ $(CFLAGS)
 
 app: app.c
 	$(CC) -o $@ $^ $(CFLAGS) -DWITH_DLNS -pthread
